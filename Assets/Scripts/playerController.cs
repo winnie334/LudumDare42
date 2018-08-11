@@ -142,7 +142,7 @@ public class playerController : MonoBehaviour {
 
 	public void reset() {
 		transform.position = levelController.getSpawnPoint();
-		GameObject.Find("spaceBackground").transform.position = Camera.main.transform.TransformPoint(new Vector3(0, 0, 0.46f));
+		GameObject.Find("spaceBackground").transform.position = Camera.main.transform.TransformPoint(new Vector3(0, 0, 0.46f)); // todo
 		rb2D.velocity = Vector2.zero;
 		cloneTimer = 0;
 		
