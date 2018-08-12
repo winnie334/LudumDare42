@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
@@ -11,6 +12,11 @@ public class levelController : MonoBehaviour {
 
 	private static GameObject[] spawnPoints;
 	private static string numberString;
+	private static bool finished;
+
+	private static Vector3 camVelocity;
+	private static float camSize;
+	private static float backgroundVelocity;
 	
 	private KeyCode[] keyCodesNumpad = {
 			KeyCode.Alpha0,
@@ -42,19 +48,25 @@ public class levelController : MonoBehaviour {
 		"6244",
 		"1936",
 		"0550",
-		"0811"
+		"0811",
+		"134863"
 	};
  
 		
 
 	public void Start() {
-		spawnPoints = new GameObject[5];
-		for (int i = 1; i < 6; i++) {
+		spawnPoints = new GameObject[6];
+		for (int i = 1; i < 7; i++) {
 			spawnPoints[i - 1] = GameObject.Find("spawnTeleport" + i);
 		}
 	}
 
 	public void Update() {
+		if (finished) {
+			playEnd();
+			return;
+		}
+		
 		timeBusy += Time.deltaTime;
 
 		for (int i = 0; i < keyCodesNumpad.Length; i++) {
@@ -91,5 +103,29 @@ public class levelController : MonoBehaviour {
 		currentLetter += 1;
 		timeBusy = 0;
 		deaths = 0;
+	}
+
+	public static void triggerEnd() {
+		finished = true;
+		Camera.main.transform.parent = null;
+	}
+
+	private static void playEnd() {
+		var time = 2f;
+		
+		Vector3 targetPosition = new Vector3(71.5f, 12, -10);
+
+		// Smoothly move the camera towards that target position
+		Camera.main.transform.position = Vector3.SmoothDamp(Camera.main.transform.position, targetPosition, ref camVelocity, time);
+
+		var targetSize = 51.6f;
+		float newSize = Mathf.SmoothDamp(Camera.main.orthographicSize, targetSize, ref camSize, time);
+		Camera.main.orthographicSize = newSize;
+
+		var backgroundTarget = 0.04f;
+		float newScale = Mathf.SmoothDamp(Camera.main.transform.GetChild(0).transform.localScale.x, backgroundTarget,
+			ref backgroundVelocity, time);
+		Camera.main.transform.GetChild(0).transform.localScale = new Vector3(newScale, newScale, 1);
+		
 	}
 }

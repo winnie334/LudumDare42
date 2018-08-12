@@ -8,12 +8,16 @@ public class playerController : MonoBehaviour {
 	public float jumpForce;
 	public float timeBetweenClones;
 	public GameObject clone;
+	public ParticleSystem deadParticle;
+	public Canvas canvas;
 
 	private Rigidbody2D rb2D;
 	private Animator animator;
 	private SpriteRenderer spriteRenderer;
+	private Collider2D myCollider;
 	private bool canJump = true;
 	private bool pressedJump;
+	private bool alive = true;
 	private float cloneTimer;
 	private AudioSource audioSource;
 
@@ -21,6 +25,7 @@ public class playerController : MonoBehaviour {
 	void Start () {
 		rb2D = GetComponent<Rigidbody2D>();
 		animator = GetComponent<Animator>();
+		myCollider = GetComponent<Collider2D>();
 		audioSource = GetComponent<AudioSource>();
 		spriteRenderer = GetComponent<SpriteRenderer>();
 	}
@@ -37,12 +42,10 @@ public class playerController : MonoBehaviour {
 	}
 
 	private void processInput() {
+		if (pauseMenu.paused) return;
+		
 		if (Input.GetKeyDown("r")) {
 			reset();
-		}
-
-		if (Input.GetKeyDown(KeyCode.Escape)) {
-			Application.Quit();
 		}
 
 		if (Input.GetKeyDown(KeyCode.Mouse0)) {
@@ -102,6 +105,7 @@ public class playerController : MonoBehaviour {
 	}
 
 	private void movement() {
+		if (pauseMenu.paused || !alive) return;
 		var horizontal = (int) Input.GetAxisRaw("Horizontal");
 		transform.position = new Vector2(transform.position.x + horizontal * speed, transform.position.y);
 		//rb2D.velocity = new Vector2(horizontal * speed, rb2D.velocity.y);
@@ -132,15 +136,49 @@ public class playerController : MonoBehaviour {
 			levelController.increaseLevel();
 			reset();
 		}
+
+		if (other.gameObject.CompareTag("Speedsign")) {
+			speed += 0.15f;
+		}
+
+		if (other.gameObject.CompareTag("Endgame")) {
+			Debug.Log("great..");
+			rb2D.gravityScale = 0;
+			var currentPos = transform.position;
+			reset();
+			transform.position = currentPos;
+			animator.enabled = false;
+			spriteRenderer.enabled = false;
+			levelController.triggerEnd();
+			canvas.GetComponent<pauseMenu>().theEnd();
+		}
 	}
 
 	public void die() {
+		alive = false;
+		Instantiate(deadParticle, transform.position, Quaternion.identity);
 		audioSource.Play();
 		levelController.deaths += 1;
+		spriteRenderer.enabled = false;
+		myCollider.enabled = false;
+		animator.enabled = false;
+		rb2D.gravityScale = 0;
+		rb2D.velocity = Vector2.zero;
+		
+		StartCoroutine(delayedReset());
+	}
+
+	IEnumerator delayedReset() {
+		yield return new WaitForSeconds(1.3f);
 		reset();
+		spriteRenderer.enabled = true;
+		myCollider.enabled = true;
+		animator.enabled = true;
+		rb2D.gravityScale = 3;
 	}
 
 	public void reset() {
+		alive = true;
 		transform.position = levelController.getSpawnPoint();
 		GameObject.Find("spaceBackground").transform.position = Camera.main.transform.TransformPoint(new Vector3(0, 0, 0.46f)); // todo
 		rb2D.velocity = Vector2.zero;

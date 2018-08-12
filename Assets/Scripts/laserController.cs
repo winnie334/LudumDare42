@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class laserController : MonoBehaviour {
 
@@ -8,6 +10,7 @@ public class laserController : MonoBehaviour {
 	public float timeBetweenLaser;
 	public float timeLaserOn;
 	public float offset;
+	public ParticleSystem laserParticle;
 
 	private float timer;
 	private bool warmingUp;
@@ -44,6 +47,12 @@ public class laserController : MonoBehaviour {
 		lineRenderer.SetPosition(0, transform.position);
 		if (hit.collider != null) {
 			lineRenderer.SetPosition(1, hit.point);
+			if (QualitySettings.GetQualityLevel() > 2 && (int) (timer * 100) % 5 == 0) {
+				var uggh = laserParticle.shape;
+				uggh.rotation = -new Vector3(0, Mathf.Rad2Deg * Mathf.Atan(direction.x / direction.y), 0);
+				Instantiate(laserParticle, new Vector3(hit.point.x, hit.point.y, 0) - direction / 10, Quaternion.identity);
+			}
+
 			if (hit.collider.gameObject.CompareTag("Player"))
 				hit.collider.gameObject.GetComponent<playerController>().die();
 		} else lineRenderer.SetPosition(1, transform.position + 1000 * direction);

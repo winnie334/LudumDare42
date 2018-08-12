@@ -102,6 +102,8 @@ MonoBehaviour:
   timeBetweenLaser: 0
   timeLaserOn: 0
   offset: 0
+  laserParticle: {fileID: 198836794072151586, guid: 9e25987d6e2baba499ba9bf2da94b7c4,
+    type: 2}
 --- !u!120 &120514890189272416
 LineRenderer:
   m_ObjectHideFlags: 1
